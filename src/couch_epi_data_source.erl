@@ -153,12 +153,12 @@ safe_set(Hash, Data, #state{} = State) ->
 read({file, FilePath}) ->
     case file:consult(FilePath) of
         {ok, Data} ->
-            {ok, hash(FilePath), Data};
+            {ok, hash_of_file(FilePath), Data};
         {error, Reason} ->
             {error, {FilePath, Reason}}
     end.
 
-hash(FilePath) ->
+hash_of_file(FilePath) ->
     {ok, Data} = file:read_file(FilePath),
     crypto:hash(md5, Data).
 
