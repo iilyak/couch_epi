@@ -110,7 +110,7 @@ epi_data_source_test_() ->
             fun setup/0,
             fun teardown/1,
             [
-                fun check_all/1,
+                fun check_dump/1,
                 fun check_get/1,
                 fun check_get_value/1,
                 fun check_by_key/1,
@@ -283,11 +283,11 @@ pipe_state(Ctx) ->
     Trace = [get(Ctx, inc1), get(Ctx, inc2)],
     lists:usort([State || {ok, State} <- Trace]).
 
-check_all(#ctx{data_handle = Handle}) ->
+check_dump(#ctx{data_handle = Handle}) ->
     ?_test(begin
         ?assertMatch(
             [[{type, counter}, {desc, foo}]],
-            couch_epi:all(Handle))
+            couch_epi:dump(Handle))
     end).
 
 check_get(#ctx{data_handle = Handle}) ->

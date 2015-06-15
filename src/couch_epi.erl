@@ -17,7 +17,7 @@
 
 %% queries and introspection
 -export([
-    all/1, get/2, get_value/3,
+    dump/1, get/2, get_value/3,
     by_key/1, by_key/2, by_source/1, by_source/2,
     keys/1, subscribers/1]).
 
@@ -52,10 +52,10 @@
 %% API Function Definitions
 %% ------------------------------------------------------------------
 
--spec all(Handle :: handle()) ->
+-spec dump(Handle :: handle()) ->
     [Config :: properties()].
 
-all(Handle) ->
+dump(Handle) ->
     couch_epi_data_gen:get(Handle).
 
 -spec get(Handle :: handle(), Key :: key()) ->
