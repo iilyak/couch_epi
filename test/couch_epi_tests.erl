@@ -138,6 +138,19 @@ epi_apply_test_() ->
         }
     }.
 
+epi_subscription_test_() ->
+    {
+        "epi subscription tests",
+        {
+            foreach,
+            fun setup/0,
+            fun teardown/1,
+            [
+                fun ensure_unsubscribe_when_caller_die/1
+            ]
+        }
+    }.
+
 apply_options_test_() ->
     Funs = [fun ensure_apply_is_called/2],
     make_case("Apply with options: ", valid_options_permutations(), Funs).
@@ -252,6 +265,17 @@ ensure_fail(#ctx{functions_handle = Handle, kv = KV}) ->
         ?assertThrow(check_error,
             couch_epi:apply(Handle, my_service, fail, [KV, 2], [])),
         ok
+    end).
+
+ensure_unsubscribe_when_caller_die(#ctx{} = Ctx) ->
+    ?_test(begin
+        Key = {test_app, descriptions},
+        spawn(fun() ->
+            subscribe(Ctx, test_app, Key)
+        end),
+        %%update(file, Ctx),
+        timer:sleep(200),
+        ?assertMatch(error, get(Ctx, is_called))
     end).
 
 

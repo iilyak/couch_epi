@@ -65,9 +65,9 @@ init(_Args) ->
     State = #epi_server_state{subscriptions = dict:new()},
     {ok, State}.
 
-handle_call({subscribe, App, Key, MFA}, _From,
+handle_call({subscribe, App, Key, MFA}, {Pid, _Tag},
         #epi_server_state{subscriptions = Subscriptions0} = State0) ->
-    {Subscription, Subscriptions1} = add(Subscriptions0, App, Key, MFA),
+    {Subscription, Subscriptions1} = add(Pid, Subscriptions0, App, Key, MFA),
     State1 = State0#epi_server_state{subscriptions = Subscriptions1},
     {reply, {ok, Subscription}, State1};
 handle_call({unsubscribe, Subscription}, _From,
@@ -86,6 +86,11 @@ handle_cast({notify, App, Key, OldData, Data},
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
+handle_info({'DOWN', MonitorRef, Type, Object, Info},
+        #epi_server_state{subscriptions = Subscriptions0} = State0) ->
+    Subscriptions1 = remove(Subscriptions0, MonitorRef),
+    State1 = State0#epi_server_state{subscriptions = Subscriptions1},
+    {noreply, State1};
 handle_info(_Info, State) ->
     {noreply, State}.
 
@@ -107,13 +112,14 @@ subscribers(Subscriptions, App, Key) ->
             Subscribers
     end.
 
-add(Subscriptions, App, Key, MFA) ->
-    Subscription = make_ref(),
+add(Pid, Subscriptions, App, Key, MFA) ->
+    Subscription = erlang:monitor(process, Pid),
     {Subscription, dict:append({App, Key}, {Subscription, MFA}, Subscriptions)}.
 
 remove(Subscriptions, SubscriptionId) ->
     case find(Subscriptions, SubscriptionId) of
         {App, Key} ->
+            demonitor(SubscriptionId, [flush]),
             delete_subscriber(Subscriptions, App, Key, SubscriptionId);
         _ ->
             Subscriptions
