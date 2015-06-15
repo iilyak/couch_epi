@@ -42,6 +42,7 @@
 
 -type apply_opt()
     :: ignore_errors
+        | ignore_providers
         | concurrent
         | pipe.
 

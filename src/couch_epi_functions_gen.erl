@@ -20,7 +20,12 @@
 
 -endif.
 
--record(opts, {ignore_errors = false, pipe = false, concurrent = false}).
+-record(opts, {
+    ignore_errors = false,
+    ignore_providers = false,
+    pipe = false,
+    concurrent = false
+}).
 
 add(Handle, Source, Modules) ->
     case is_updated(Handle, Source, Modules) of
@@ -40,8 +45,8 @@ apply(ServiceId, Function, Args, Opts) when is_atom(ServiceId) ->
     Args :: [term()], Opts :: couch_epi:apply_opts()) -> ok.
 
 apply(Handle, _ServiceId, Function, Args, Opts) ->
-    Modules = Handle:providers(Function, length(Args)),
     DispatchOpts = parse_opts(Opts),
+    Modules = providers(Handle, Function, length(Args), DispatchOpts),
     dispatch(Handle, Modules, Function, Args, DispatchOpts).
 
 
@@ -272,10 +277,19 @@ parse_opts([pipe|Rest], #opts{} = Acc) ->
     parse_opts(Rest, Acc#opts{pipe = true});
 parse_opts([concurrent|Rest], #opts{} = Acc) ->
     parse_opts(Rest, Acc#opts{concurrent = true});
+parse_opts([ignore_providers|Rest], #opts{} = Acc) ->
+    parse_opts(Rest, Acc#opts{ignore_providers = true});
 parse_opts([], Acc) ->
     Acc.
 
-
+providers(Handle, Function, Arity, #opts{ignore_providers = true}) ->
+    try
+        Handle:providers(Function, Arity)
+    catch
+        error:undef -> []
+    end;
+providers(Handle, Function, Arity, #opts{}) ->
+    Handle:providers(Function, Arity).
 
 
 %% ------------------------------------------------------------------
