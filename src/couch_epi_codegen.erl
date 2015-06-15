@@ -43,7 +43,7 @@ parse(FormsTokens) ->
     lists:reverse(ASTForms).
 
 format_term(Data) ->
-    lists:flatten(io_lib:format("~p", [Data])).
+    lists:flatten(io_lib:format("~w", [Data])).
 
 parse_form(Tokens) ->
     {Expr, Forms} = split_expression(Tokens),
