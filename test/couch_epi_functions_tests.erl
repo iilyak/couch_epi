@@ -24,11 +24,14 @@
 ").
 
 setup() ->
+    setup([{interval, 100}]).
+
+setup(Opts) ->
     ServiceId = my_service,
     Module = my_test_module,
     ok = generate_module(Module, ?MODULE1(Module)),
     {ok, Pid} = couch_epi_functions:start_link(
-        test_app, {epi_key, ServiceId}, {modules, [Module]}, [{interval, 100}]),
+        test_app, {epi_key, ServiceId}, {modules, [Module]}, Opts),
     ok = couch_epi_functions:wait(Pid),
     {Pid, Module, ServiceId, couch_epi_functions_gen:get_handle(ServiceId)}.
 
@@ -56,9 +59,21 @@ epi_functions_test_() ->
             fun setup/0,
             fun teardown/1,
             [
-                fun ensure_reload_if_manually_triggered/1,
                 fun ensure_reload_if_changed/1,
                 fun ensure_no_reload_when_no_change/1
+            ]
+        }
+    }.
+
+epi_functions_manual_reload_test_() ->
+    {
+        "functions manual reload tests",
+        {
+            foreach,
+            fun() -> setup([{interval, 10000}]) end,
+            fun teardown/1,
+            [
+                fun ensure_reload_if_manually_triggered/1
             ]
         }
     }.
