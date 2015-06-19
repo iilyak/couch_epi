@@ -89,7 +89,8 @@ handle_info(tick, State) ->
 handle_info(_Info, State) ->
     {noreply, State}.
 
-terminate(_Reason, _State) ->
+terminate(_Reason, State) ->
+    safe_remove(State),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
@@ -118,6 +119,21 @@ safe_add(Hash, #state{modules = OldModules} = State) ->
         couch_epi_server:notify(
             Provider, ServiceId, {modules, OldModules}, {modules, Modules}),
         {ok, State#state{hash = Hash}}
+    catch Class:Reason ->
+        {{Class, Reason}, State}
+    end.
+
+safe_remove(#state{} = State) ->
+    #state{
+        handle = Handle,
+        provider = Provider,
+        modules = Modules,
+        service_id = ServiceId} = State,
+    try
+        ok = couch_epi_functions_gen:remove(Handle, Provider, Modules),
+        couch_epi_server:notify(
+            Provider, ServiceId, {modules, Modules}, {modules, []}),
+        {ok, State#state{modules = []}}
     catch Class:Reason ->
         {{Class, Reason}, State}
     end.

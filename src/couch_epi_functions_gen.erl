@@ -12,7 +12,7 @@
 
 -module(couch_epi_functions_gen).
 
--export([add/3, get_handle/1, hash/1, apply/4, apply/5]).
+-export([add/3, remove/3, get_handle/1, hash/1, apply/4, apply/5]).
 
 -ifdef(TEST).
 
@@ -34,6 +34,16 @@ add(Handle, Source, Modules) ->
         true ->
             save(Handle, Source, Modules)
     end.
+
+remove(Handle, Source, Modules) ->
+    CurrentDefs = get_current_definitions(Handle),
+    {SourceDefs, Defs} = remove_from_definitions(CurrentDefs, Source),
+
+    NewSourceDefs = lists:filter(fun({M, _}) ->
+        not lists:member(M, Modules)
+    end, SourceDefs),
+
+    generate(Handle, Defs ++ NewSourceDefs).
 
 get_handle(ServiceId) ->
     module_name(atom_to_list(ServiceId)).
@@ -290,6 +300,24 @@ providers(Handle, Function, Arity, #opts{ignore_providers = true}) ->
     end;
 providers(Handle, Function, Arity, #opts{}) ->
     Handle:providers(Function, Arity).
+
+remove_from_definitions(Defs, Source) ->
+    case lists:keytake(Source, 1, Defs) of
+        {value, {Source, Value}, Rest} ->
+            {Value, Rest};
+        false ->
+            {[], Defs}
+    end.
+
+generate_or_remove(Handler, []) ->
+    case code:is_loaded(Handler) of
+        true ->
+            code:purge(Handler);
+        false ->
+            ok
+    end;
+generate_or_remove(Handler, Defs) ->
+    generate(Handler, Defs).
 
 
 %% ------------------------------------------------------------------
