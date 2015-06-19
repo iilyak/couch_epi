@@ -23,6 +23,7 @@
 
 %% apply
 -export([apply/5]).
+-export([any/5, all/5]).
 
 -export_type([service_id/0, app/0, key/0, handle/0, notify_cb/0]).
 
@@ -141,3 +142,17 @@ get_handle({_ServiceId, _Key} = EPIKey) ->
     couch_epi_data_gen:get_handle(EPIKey);
 get_handle(ServiceId) when is_atom(ServiceId) ->
     couch_epi_functions_gen:get_handle(ServiceId).
+
+-spec any(Handle :: handle(), ServiceId :: atom(), Function :: atom(),
+    Args :: [term()], Opts :: apply_opts()) -> boolean().
+
+any(Handle, ServiceId, Function, Args, Opts) ->
+    Replies = apply(Handle, ServiceId, Function, Args, Opts),
+    [] /= [Reply || Reply <- Replies, Reply == true].
+
+-spec all(Handle :: handle(), ServiceId :: atom(), Function :: atom(),
+    Args :: [term()], Opts :: apply_opts()) -> boolean().
+
+all(Handle, ServiceId, Function, Args, Opts) ->
+    Replies = apply(Handle, ServiceId, Function, Args, Opts),
+    [] == [Reply || Reply <- Replies, Reply == false].
