@@ -309,17 +309,6 @@ remove_from_definitions(Defs, Source) ->
             {[], Defs}
     end.
 
-generate_or_remove(Handler, []) ->
-    case code:is_loaded(Handler) of
-        true ->
-            code:purge(Handler);
-        false ->
-            ok
-    end;
-generate_or_remove(Handler, Defs) ->
-    generate(Handler, Defs).
-
-
 %% ------------------------------------------------------------------
 %% Tests
 %% ------------------------------------------------------------------
