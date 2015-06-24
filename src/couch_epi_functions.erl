@@ -19,6 +19,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
+-export([childspec/4]).
 -export([start_link/4, reload/1]).
 -export([wait/1, stop/1]).
 
@@ -36,6 +37,21 @@
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
+
+childspec(Id, App, EpiKey, Module) ->
+    {
+        Id,
+        {?MODULE, start_link, [
+            App,
+            EpiKey,
+            Module,
+            []
+        ]},
+        permanent,
+        5000,
+        worker,
+        [Module]
+    }.
 
 start_link(ProviderApp, {epi_key, ServiceId}, {modules, Modules}, Options) ->
     gen_server:start_link(

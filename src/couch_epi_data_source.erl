@@ -19,6 +19,7 @@
 %% API Function Exports
 %% ------------------------------------------------------------------
 
+-export([childspec/5]).
 -export([start_link/4, reload/1]).
 -export([wait/1, stop/1]).
 
@@ -36,6 +37,21 @@
 %% ------------------------------------------------------------------
 %% API Function Definitions
 %% ------------------------------------------------------------------
+
+childspec(Id, App, EpiKey, Locator, Options) ->
+    {
+        Id,
+        {?MODULE, start_link, [
+            App,
+            EpiKey,
+            Locator,
+            Options
+        ]},
+        permanent,
+        5000,
+        worker,
+        [?MODULE]
+    }.
 
 start_link(SubscriberApp, {epi_key, Key}, Src, Options) ->
     {ok, Locator} = locate(SubscriberApp, Src),
