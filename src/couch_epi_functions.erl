@@ -72,7 +72,7 @@ handle_call(reload, _From, State) ->
     {Res, NewState} = reload_if_updated(State),
     {reply, Res, NewState};
 handle_call(stop, _From, State) ->
-    {stop, ok, State};
+    {stop, normal, State};
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
 
