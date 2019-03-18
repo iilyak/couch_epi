@@ -112,3 +112,4 @@ There are multiple ways of doing the apply which is controlled by Opts
 Notes:
 
   - `concurrent` is incompatible with `pipe`
+test
